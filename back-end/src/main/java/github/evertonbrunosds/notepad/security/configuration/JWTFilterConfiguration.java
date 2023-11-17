@@ -12,13 +12,14 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import github.evertonbrunosds.notepad.model.shared.UserprofileShared;
+import github.evertonbrunosds.notepad.model.entity.UserprofileEntity;
 import github.evertonbrunosds.notepad.security.model.AllowedRoutes;
 import github.evertonbrunosds.notepad.security.model.Author;
 import github.evertonbrunosds.notepad.security.model.JWTLoader;
@@ -47,10 +48,12 @@ public class JWTFilterConfiguration extends OncePerRequestFilter {
     protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response, final FilterChain filterChain) throws ServletException, IOException {
         jwtLoader.loadIdUserprofilePkFromRequest(request).ifPresent(idUserprofilePk -> {
             service.findByIdUserprofilePk(idUserprofilePk).ifPresent(userprofile -> {
-                final var authentication = new UsernamePasswordAuthenticationToken(userprofile, emptyList(), emptyList());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                request.setAttribute(AUTHOR, userprofile);
+                if (isValid(userprofile)) {
+                    final var authentication = new UsernamePasswordAuthenticationToken(userprofile, emptyList(), userprofile.getAuthorities());
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    request.setAttribute(AUTHOR, userprofile);
+                }
             });
         });
         filterChain.doFilter(request, response);
@@ -82,10 +85,17 @@ public class JWTFilterConfiguration extends OncePerRequestFilter {
         return http.build();
     }
 
+    public boolean isValid(final UserDetails userDetails) {
+        return (userDetails.isAccountNonExpired() &&
+        userDetails.isAccountNonLocked() &&
+        userDetails.isCredentialsNonExpired() &&
+        userDetails.isEnabled()) == true;
+    }
+
     @Bean
     @RequestScope
     public Author author(final HttpServletRequest request) {
-        return new Author((UserprofileShared) request.getAttribute(AUTHOR));
+        return new Author((UserprofileEntity) request.getAttribute(AUTHOR));
     }
 
 }

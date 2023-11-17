@@ -9,8 +9,9 @@ import java.util.function.Consumer;
 
 import org.springframework.stereotype.Controller;
 
-import github.evertonbrunosds.notepad.model.shared.UserprofileShared;
+import github.evertonbrunosds.notepad.model.entity.UserprofileEntity;
 import github.evertonbrunosds.notepad.security.model.JWTBuilder;
+import github.evertonbrunosds.notepad.security.model.JWTBuilder.JWTAuthentication;
 import github.evertonbrunosds.notepad.service.UserprofileService;
 import github.evertonbrunosds.notepad.util.ResourceException;
 import github.evertonbrunosds.notepad.util.Validate;
@@ -31,32 +32,32 @@ public class UserprofileController {
 
     private final Validate validate = new Validate(UserprofileController.class);
 
-    public String authenticate(final Consumer<DataAuth> content) {
-        final var dataAuth = new DataAuth();
-        content.accept(dataAuth);
-        validate.email(dataAuth.email);
-        validate.password(dataAuth.password);
-        return jwtBuilder.build(dataAuth.email, dataAuth.password, dataAuth.expirationTime);
+    public JWTAuthentication authenticate(final Consumer<AuthenticationDataManager> content) {
+        final var dataManager = new AuthenticationDataManager();
+        content.accept(dataManager);
+        validate.email(dataManager.email);
+        validate.password(dataManager.password);
+        return jwtBuilder.build(dataManager.email, dataManager.password, dataManager.expirationTime);
     }
 
-    public UserprofileShared create(final UserprofileShared shared) {
-        validate.username(shared.getUsername());
-        validate.birthday(shared.getBirthday());
-        validate.email(shared.getEmail());
-        validate.password(shared.getPassword());
-        return service.create(shared);
+    public UserprofileEntity create(final UserprofileEntity userprofile) {
+        validate.username(userprofile.getUsername());
+        validate.birthday(userprofile.getBirthday());
+        validate.email(userprofile.getEmail());
+        validate.password(userprofile.getPassword());
+        return service.create(userprofile);
     }
 
-    public UserprofileShared update(final UserprofileShared shared) {
-        validate.username(shared.getUsername());
-        validate.birthday(shared.getBirthday());
-        validate.email(shared.getEmail());
-        validate.password(shared.getPassword());
-        return service.update(shared);
+    public UserprofileEntity update(final UserprofileEntity userprofile) {
+        validate.username(userprofile.getUsername());
+        validate.birthday(userprofile.getBirthday());
+        validate.email(userprofile.getEmail());
+        validate.password(userprofile.getPassword());
+        return service.update(userprofile);
     }
 
 
-    public UserprofileShared findByEmail(final String email) {
+    public UserprofileEntity findByEmail(final String email) {
         validate.email(email);
         final var result = service.findByEmail(email);
         return result.orElseThrow(() -> {
@@ -64,7 +65,7 @@ public class UserprofileController {
         });
     }
 
-    public UserprofileShared findByIdUserprofilePk(final UUID idUserprofilePk) {
+    public UserprofileEntity findByIdUserprofilePk(final UUID idUserprofilePk) {
         final var result = service.findByIdUserprofilePk(idUserprofilePk);
         return result.orElseThrow(() -> {
             return new ResourceException(NOT_FOUND, ID_USERPROFILE_PK, UserprofileController.class);
@@ -77,7 +78,7 @@ public class UserprofileController {
 
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     @Setter
-    public class DataAuth {
+    public class AuthenticationDataManager {
 
         private String email;
 

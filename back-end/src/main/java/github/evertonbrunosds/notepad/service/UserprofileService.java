@@ -12,7 +12,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import github.evertonbrunosds.notepad.model.entity.UserprofileEntity;
-import github.evertonbrunosds.notepad.model.shared.UserprofileShared;
 import github.evertonbrunosds.notepad.repository.UserprofileRepository;
 import github.evertonbrunosds.notepad.security.configuration.SymmetricSecureProcessorConfiguration.AES;
 import github.evertonbrunosds.notepad.util.ResourceException;
@@ -30,41 +29,41 @@ public class UserprofileService {
 
     private final PasswordEncoder passwordEncoder;
 
-    public UserprofileShared create(final UserprofileShared shared) {
-        var entity = toEntity(shared);
-        if (repository.findByEmail(entity.getEmail()).isPresent()) {
+    public UserprofileEntity create(final UserprofileEntity userDecoded) {
+        final var userEncoded = toEncode(userDecoded);
+        if (repository.findByEmail(userEncoded.getEmail()).isPresent()) {
             throw new ResourceException(CONFLICT, EMAIL, UserprofileService.class);
         } else {
-            entity.setIdUserprofilePk(null);
-            entity.setCreated(currentLocalDateTime());
-            entity = repository.save(entity);
-            return toShared(entity);
+            userEncoded.setIdUserprofilePk(null);
+            userEncoded.setCreated(currentLocalDateTime());
+            final var userCreated = repository.save(userEncoded);
+            return toDecode(userCreated);
         }
     }
 
-    public UserprofileShared update(final UserprofileShared shared) {
-        findByEmail(shared.getEmail()).ifPresent(entity -> {
-            if (!entity.getIdUserprofilePk().equals(shared.getIdUserprofilePk())) {
+    public UserprofileEntity update(final UserprofileEntity userDecoded) {
+        final var userEncoded = toEncode(userDecoded);
+        repository.findByEmail(userEncoded.getEmail()).ifPresent(entity -> {
+            if (!entity.getIdUserprofilePk().equals(userEncoded.getIdUserprofilePk())) {
                 throw new ResourceException(CONFLICT, EMAIL, UserprofileService.class);
             }
         });
-        var entity = toEntity(shared);
-        entity = repository.save(entity);
-        return toShared(entity);
+        final var userUpdated = repository.save(userEncoded);
+        return toDecode(userUpdated);
     }
 
-    public Optional<UserprofileShared> findByEmail(final String email) {
+    public Optional<UserprofileEntity> findByEmail(final String email) {
         final var encodedEmail = aes.encode(email).orThrow(this::emailResourceException);
         final var result = repository.findByEmail(encodedEmail);
         return result.isPresent()
-                ? Optional.of(toShared(result.get()))
+                ? Optional.of(toDecode(result.get()))
                 : Optional.empty();
     }
 
-    public Optional<UserprofileShared> findByIdUserprofilePk(final UUID idUserprofilePk) {
+    public Optional<UserprofileEntity> findByIdUserprofilePk(final UUID idUserprofilePk) {
         final var result = repository.findById(idUserprofilePk);
         return result.isPresent()
-                ? Optional.of(toShared(result.get()))
+                ? Optional.of(toDecode(result.get()))
                 : Optional.empty();
     }
 
@@ -72,26 +71,17 @@ public class UserprofileService {
         repository.deleteById(idUserprofilePk);
     }
 
-    private UserprofileShared toShared(final UserprofileEntity entity) {
-        return UserprofileShared.builder()
-                .idUserprofilePk(entity.getIdUserprofilePk())
-                .username(entity.getUsername())
-                .birthday(entity.getBirthday())
-                .password(entity.getPassword())
-                .created(entity.getCreated())
-                .email(aes.decode(entity.getEmail()).orThrow(this::emailResourceException))
-                .build();
+    private UserprofileEntity toDecode(final UserprofileEntity userEncoded) {
+        final var userDecoded = userEncoded.copyWithOriginalState();
+        userDecoded.setEmail(aes.decode(userEncoded.getEmail()).orThrow(this::emailResourceException));
+        return userDecoded;
     }
 
-    private UserprofileEntity toEntity(final UserprofileShared shared) {
-        return UserprofileEntity.builder()
-                .idUserprofilePk(shared.getIdUserprofilePk())
-                .username(shared.getUsername())
-                .birthday(shared.getBirthday())
-                .password(passwordEncoder.encode(shared.getPassword()))
-                .created(shared.getCreated())
-                .email(aes.encode(shared.getEmail()).orThrow(this::emailResourceException))
-                .build();
+    private UserprofileEntity toEncode(final UserprofileEntity userDecoded) {
+        final var userEncoded = userDecoded.copyWithOriginalState();
+        userEncoded.setEmail(aes.encode(userDecoded.getEmail()).orThrow(this::emailResourceException));
+        userEncoded.setPassword(passwordEncoder.encode(userDecoded.getPassword()));
+        return userEncoded;
     }
 
     private ResourceException emailResourceException() {

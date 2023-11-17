@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import github.evertonbrunosds.notepad.controller.UserprofileController;
+import github.evertonbrunosds.notepad.model.entity.UserprofileEntity;
 import github.evertonbrunosds.notepad.model.request.UserprofileRequest;
 import github.evertonbrunosds.notepad.model.response.UserprofileResponse;
-import github.evertonbrunosds.notepad.model.shared.UserprofileShared;
 import github.evertonbrunosds.notepad.security.model.Author;
 import github.evertonbrunosds.notepad.util.Routes;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +52,7 @@ public class UserprofileView {
 
     @PutMapping
     public UserprofileResponse update(final @RequestBody UserprofileRequest request) {
-        var shared = modelMapper.map(request, UserprofileShared.class);
+        var shared = modelMapper.map(request, UserprofileEntity.class);
         shared.setIdUserprofilePk(author.getUserprofile().getIdUserprofilePk());
         shared.setCreated(author.getUserprofile().getCreated());
         shared = controller.update(shared);
