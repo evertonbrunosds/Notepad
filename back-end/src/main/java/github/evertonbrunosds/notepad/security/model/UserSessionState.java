@@ -31,4 +31,12 @@ public class UserSessionState {
         enabled = () -> Boolean.TRUE;
     }
 
+    public void loadFromInstance(final UserSessionState state) {
+        this.authorities = state.authorities;
+        this.credentialsNonExpired = state.credentialsNonExpired;
+        this.accountNonExpired = state.accountNonExpired;
+        this.accountNonLocked = state.accountNonLocked;
+        this.enabled = state.enabled;
+    }
+
 }

@@ -43,10 +43,11 @@ public class UserprofileService {
 
     public UserprofileEntity update(final UserprofileEntity userDecoded) {
         final var userEncoded = toEncode(userDecoded);
-        repository.findByEmail(userEncoded.getEmail()).ifPresent(entity -> {
-            if (!entity.getIdUserprofilePk().equals(userEncoded.getIdUserprofilePk())) {
+        repository.findByEmail(userEncoded.getEmail()).ifPresent(currentUser -> {
+            if (!currentUser.getIdUserprofilePk().equals(userEncoded.getIdUserprofilePk())) {
                 throw new ResourceException(CONFLICT, EMAIL, UserprofileService.class);
             }
+            userEncoded.getState().loadFromInstance(currentUser.getState());
         });
         final var userUpdated = repository.save(userEncoded);
         return toDecode(userUpdated);
@@ -71,13 +72,13 @@ public class UserprofileService {
         repository.deleteById(idUserprofilePk);
     }
 
-    private UserprofileEntity toDecode(final UserprofileEntity userEncoded) {
+    public UserprofileEntity toDecode(final UserprofileEntity userEncoded) {
         final var userDecoded = userEncoded.copyWithOriginalState();
         userDecoded.setEmail(aes.decode(userEncoded.getEmail()).orThrow(this::emailResourceException));
         return userDecoded;
     }
 
-    private UserprofileEntity toEncode(final UserprofileEntity userDecoded) {
+    public UserprofileEntity toEncode(final UserprofileEntity userDecoded) {
         final var userEncoded = userDecoded.copyWithOriginalState();
         userEncoded.setEmail(aes.encode(userDecoded.getEmail()).orThrow(this::emailResourceException));
         userEncoded.setPassword(passwordEncoder.encode(userDecoded.getPassword()));
