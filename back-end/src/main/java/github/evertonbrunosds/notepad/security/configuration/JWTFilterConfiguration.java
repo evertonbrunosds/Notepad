@@ -3,10 +3,12 @@ package github.evertonbrunosds.notepad.security.configuration;
 import static java.util.Collections.emptyList;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -45,8 +47,8 @@ public class JWTFilterConfiguration extends OncePerRequestFilter {
     private final UserprofileService service;
 
     @Override
-    protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response, final FilterChain filterChain) throws ServletException, IOException {
-        jwtLoader.loadIdUserprofilePkFromRequest(request).ifPresent(idUserprofilePk -> {
+    protected void doFilterInternal(final @NonNull HttpServletRequest request, final @NonNull HttpServletResponse response, final @NonNull FilterChain filterChain) throws ServletException, IOException {
+        jwtLoader.loadIdUserprofilePkFromRequest(request).ifPresent((@NonNull UUID idUserprofilePk) -> {
             service.findByIdUserprofilePk(idUserprofilePk).ifPresent(userprofile -> {
                 if (isValid(userprofile)) {
                     final var authentication = new UsernamePasswordAuthenticationToken(userprofile, emptyList(), userprofile.getAuthorities());

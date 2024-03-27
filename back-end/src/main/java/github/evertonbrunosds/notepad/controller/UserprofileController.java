@@ -7,6 +7,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Controller;
 
 import github.evertonbrunosds.notepad.model.entity.UserprofileEntity;
@@ -65,14 +66,14 @@ public class UserprofileController {
         });
     }
 
-    public UserprofileEntity findByIdUserprofilePk(final UUID idUserprofilePk) {
+    public UserprofileEntity findByIdUserprofilePk(final @NonNull UUID idUserprofilePk) {
         final var result = service.findByIdUserprofilePk(idUserprofilePk);
         return result.orElseThrow(() -> {
             return new ResourceException(NOT_FOUND, ID_USERPROFILE_PK, UserprofileController.class);
         });
     }
 
-    public void deleteByIdUserprofilePk(final UUID idUserprofilePk) {
+    public void deleteByIdUserprofilePk(final @NonNull UUID idUserprofilePk) {
         service.deleteByIdUserprofilePk(idUserprofilePk);
     }
 

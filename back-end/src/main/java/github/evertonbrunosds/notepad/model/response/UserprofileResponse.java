@@ -6,6 +6,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.springframework.lang.NonNull;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,6 +15,7 @@ import lombok.Setter;
 @Setter
 public class UserprofileResponse {
 
+    @Getter(onMethod_ = @NonNull)
     private UUID idUserprofilePk;
 
     private String username;

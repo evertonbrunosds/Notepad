@@ -1,12 +1,12 @@
 package github.evertonbrunosds.notepad.util;
 
+import static github.evertonbrunosds.notepad.util.Parameter.UNDETERMINED;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
 
 import lombok.RequiredArgsConstructor;
-
-import static github.evertonbrunosds.notepad.util.Parameter.UNDETERMINED;
 
 @RequiredArgsConstructor
 public class ResourceException extends RuntimeException {
@@ -17,6 +17,7 @@ public class ResourceException extends RuntimeException {
 
     private final Class<?> involvedClass;
 
+    @NonNull
     public HttpStatus getInvolvedStatus() {
         return involvedStatus != null
                 ? involvedStatus

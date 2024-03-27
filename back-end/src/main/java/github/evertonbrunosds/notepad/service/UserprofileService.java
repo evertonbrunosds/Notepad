@@ -8,6 +8,7 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -61,14 +62,14 @@ public class UserprofileService {
                 : Optional.empty();
     }
 
-    public Optional<UserprofileEntity> findByIdUserprofilePk(final UUID idUserprofilePk) {
+    public Optional<UserprofileEntity> findByIdUserprofilePk(final @NonNull UUID idUserprofilePk) {
         final var result = repository.findById(idUserprofilePk);
         return result.isPresent()
                 ? Optional.of(toDecode(result.get()))
                 : Optional.empty();
     }
 
-    public void deleteByIdUserprofilePk(final UUID idUserprofilePk) {
+    public void deleteByIdUserprofilePk(final @NonNull UUID idUserprofilePk) {
         repository.deleteById(idUserprofilePk);
     }
 
